@@ -7,13 +7,13 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f0f0f0;
+            background-color: #e8f5e9; /* Light green background */
             color: #333;
             margin: 0;
             padding: 0;
         }
         header {
-            background-color: #00796b;
+            background-color: #004d40; /* Darker teal */
             color: #fff;
             padding: 2rem;
             text-align: center;
@@ -41,22 +41,26 @@
             border-radius: 5px;
         }
         .container {
-            width: 80%;
+            width: 85%;
             margin: auto;
             overflow: hidden;
         }
         section {
-            background: #fff;
+            background: #ffffff;
             padding: 2rem;
             margin: 2rem 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            border-left: 5px solid #00796b;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border-left: 5px solid #004d40; /* Darker teal */
+            position: relative;
         }
         h2 {
             margin-top: 0;
-            color: #00796b;
-            font-size: 2rem;
+            color: #004d40; /* Darker teal */
+            font-size: 2.5rem;
+            border-bottom: 2px solid #004d40; /* Underline effect */
+            padding-bottom: 0.5rem;
+            font-weight: bold;
         }
         input, textarea {
             display: block;
@@ -67,19 +71,20 @@
             border-radius: 8px;
             background: #fafafa;
             box-sizing: border-box;
+            font-size: 1rem;
         }
         .button {
-            background: #00796b;
+            background: #004d40; /* Darker teal */
             color: #fff;
             padding: 1rem 2rem;
             border: none;
             cursor: pointer;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             transition: background 0.3s, transform 0.3s;
         }
         .button:hover {
-            background: #004d40;
+            background: #00332e; /* Even darker teal for hover */
             transform: scale(1.05);
         }
         .recipeList, .groceryList {
@@ -87,25 +92,59 @@
         }
         .recipeItem, .groceryItem {
             background: #f9f9f9;
-            padding: 1rem;
-            border-radius: 8px;
+            padding: 1.5rem;
+            border-radius: 10px;
             margin: 1rem 0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .recipeItem h3 {
             margin: 0;
-            color: #00796b;
+            color: #004d40; /* Darker teal */
         }
         .recipeItem ul {
             padding-left: 1.5rem;
         }
         .recipeItem ul li {
             margin: 0.5rem 0;
+            position: relative;
+            padding-left: 2.5rem; /* Added padding for better checkbox alignment */
+        }
+        .recipeItem input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: #ffffff;
+            border: 2px solid #004d40; /* Darker teal */
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .recipeItem input[type="checkbox"]:checked {
+            background: #004d40; /* Darker teal */
+            border-color: #004d40;
+        }
+        .recipeItem input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0.25rem;
+            width: 0.5rem;
+            height: 1rem;
+            border: solid #ffffff;
+            border-width: 0 0.2rem 0.2rem 0;
+            transform: rotate(45deg);
         }
         .groceryItem {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 1.1rem;
+            padding: 0.5rem;
         }
         .donation {
             text-align: center;
@@ -117,7 +156,7 @@
             padding: 1.5rem 3rem;
             border-radius: 8px;
             text-decoration: none;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: bold;
             transition: background 0.3s, transform 0.3s;
             display: inline-block;
@@ -178,25 +217,35 @@
 
         function displayRecipes() {
             const recipeList = document.getElementById('recipeList');
-            recipeList.innerHTML = recipes.map(recipe => `
+            recipeList.innerHTML = recipes.map((recipe, index) => `
                 <div class="recipeItem">
                     <h3>${recipe.name}</h3>
                     <h4>Ingredients:</h4>
-                    <ul>${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}</ul>
+                    <ul>
+                        ${recipe.ingredients.map(i => `
+                            <li>
+                                <input type="checkbox" id="ingredient-${index}-${i}" data-recipe-index="${index}" data-ingredient="${i}">
+                                <label for="ingredient-${index}-${i}">${i}</label>
+                            </li>
+                        `).join('')}
+                    </ul>
                     <h4>Instructions:</h4>
                     <p>${recipe.instructions}</p>
                 </div>
             `).join('');
+            updateGroceryList();
         }
 
         function updateGroceryList() {
-            const groceryList = document.getElementById('groceryList');
-            const allIngredients = recipes.flatMap(recipe => recipe.ingredients);
-            const ingredientCount = allIngredients.reduce((acc, ingredient) => {
-                acc[ingredient] = (acc[ingredient] || 0) + 1;
-                return acc;
-            }, {});
+            const selectedIngredients = document.querySelectorAll('input[type="checkbox"]:checked');
+            const ingredientCount = {};
 
+            selectedIngredients.forEach(checkbox => {
+                const ingredient = checkbox.getAttribute('data-ingredient');
+                ingredientCount[ingredient] = (ingredientCount[ingredient] || 0) + 1;
+            });
+
+            const groceryList = document.getElementById('groceryList');
             groceryList.innerHTML = Object.keys(ingredientCount).map(ingredient => `
                 <div class="groceryItem">
                     <span>${ingredient}</span>
@@ -211,9 +260,15 @@
             document.getElementById('recipeInstructions').value = '';
         }
 
+        // Event delegation for handling checkbox changes
+        document.addEventListener('change', event => {
+            if (event.target.type === 'checkbox') {
+                updateGroceryList();
+            }
+        });
+
         // Initial load
         displayRecipes();
-        updateGroceryList();
     </script>
 </body>
 </html>
