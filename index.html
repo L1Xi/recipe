@@ -96,6 +96,7 @@
             border-radius: 10px;
             margin: 1rem 0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
         .recipeItem h3 {
             margin: 0;
@@ -146,6 +147,27 @@
             font-size: 1.1rem;
             padding: 0.5rem;
         }
+        .deleteButton {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #d32f2f; /* Red delete button */
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s, transform 0.3s;
+        }
+        .deleteButton:hover {
+            background: #b71c1c; /* Darker red for hover */
+            transform: scale(1.1);
+        }
         .donation {
             text-align: center;
             margin-top: 2rem;
@@ -191,7 +213,7 @@
         </section>
 
         <div class="donation">
-            <a href="https://paypal.me/VL1Xi?country.x=MA&locale.x=en_US" target="_blank">Donate</a>
+            <a href="https://www.paypal.com/donate?hosted_button_id=YOUR_PAYPAL_BUTTON_ID" target="_blank">Donate</a>
         </div>
     </div>
 
@@ -215,34 +237,43 @@
             }
         }
 
+        function deleteRecipe(index) {
+            recipes.splice(index, 1);
+            localStorage.setItem('recipes', JSON.stringify(recipes));
+            displayRecipes();
+            updateGroceryList();
+        }
+
         function displayRecipes() {
             const recipeList = document.getElementById('recipeList');
             recipeList.innerHTML = recipes.map((recipe, index) => `
                 <div class="recipeItem">
+                    <button class="deleteButton" onclick="deleteRecipe(${index})">&times;</button>
                     <h3>${recipe.name}</h3>
-                    <h4>Ingredients:</h4>
+                    <h4>Ingredients</h4>
                     <ul>
-                        ${recipe.ingredients.map(i => `
+                        ${recipe.ingredients.map(ingredient => `
                             <li>
-                                <input type="checkbox" id="ingredient-${index}-${i}" data-recipe-index="${index}" data-ingredient="${i}">
-                                <label for="ingredient-${index}-${i}">${i}</label>
+                                <input type="checkbox" id="${ingredient}" name="ingredient" value="${ingredient}">
+                                <label for="${ingredient}">${ingredient}</label>
                             </li>
                         `).join('')}
                     </ul>
-                    <h4>Instructions:</h4>
+                    <h4>Instructions</h4>
                     <p>${recipe.instructions}</p>
                 </div>
             `).join('');
-            updateGroceryList();
         }
 
         function updateGroceryList() {
-            const selectedIngredients = document.querySelectorAll('input[type="checkbox"]:checked');
             const ingredientCount = {};
-
-            selectedIngredients.forEach(checkbox => {
-                const ingredient = checkbox.getAttribute('data-ingredient');
-                ingredientCount[ingredient] = (ingredientCount[ingredient] || 0) + 1;
+            document.querySelectorAll('input[name="ingredient"]:checked').forEach(checkbox => {
+                const ingredient = checkbox.value;
+                if (ingredientCount[ingredient]) {
+                    ingredientCount[ingredient]++;
+                } else {
+                    ingredientCount[ingredient] = 1;
+                }
             });
 
             const groceryList = document.getElementById('groceryList');
