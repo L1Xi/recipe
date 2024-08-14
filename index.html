@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Organizer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #00796b;
+            color: #fff;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        header h1 {
+            font-size: 3rem;
+            margin: 0;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+        header h1::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 8px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
+            border-radius: 5px;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        section {
+            background: #fff;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            border-left: 5px solid #00796b;
+        }
+        h2 {
+            margin-top: 0;
+            color: #00796b;
+            font-size: 2rem;
+        }
+        input, textarea {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            box-sizing: border-box;
+        }
+        .button {
+            background: #00796b;
+            color: #fff;
+            padding: 1rem 2rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: background 0.3s, transform 0.3s;
+        }
+        .button:hover {
+            background: #004d40;
+            transform: scale(1.05);
+        }
+        .recipeList, .groceryList {
+            margin-top: 2rem;
+        }
+        .recipeItem, .groceryItem {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .recipeItem h3 {
+            margin: 0;
+            color: #00796b;
+        }
+        .recipeItem ul {
+            padding-left: 1.5rem;
+        }
+        .recipeItem ul li {
+            margin: 0.5rem 0;
+        }
+        .groceryItem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .donation {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .donation a {
+            background: #e64a19; /* Bright orange color for visibility */
+            color: #fff;
+            padding: 1.5rem 3rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.25rem;
+            font-weight: bold;
+            transition: background 0.3s, transform 0.3s;
+            display: inline-block;
+        }
+        .donation a:hover {
+            background: #d32f2f; /* Darker red for hover effect */
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Recipe Organizer</h1>
+    </header>
+    <div class="container">
+        <section id="addRecipeSection">
+            <h2>Add a Recipe</h2>
+            <input type="text" id="recipeName" placeholder="Recipe Name" required>
+            <textarea id="recipeIngredients" rows="5" placeholder="Ingredients (one per line)" required></textarea>
+            <textarea id="recipeInstructions" rows="5" placeholder="Instructions" required></textarea>
+            <button class="button" onclick="addRecipe()">Add Recipe</button>
+        </section>
+
+        <section id="recipeListSection">
+            <h2>Your Recipes</h2>
+            <div id="recipeList" class="recipeList"></div>
+        </section>
+
+        <section id="groceryListSection">
+            <h2>Grocery List</h2>
+            <div id="groceryList" class="groceryList"></div>
+        </section>
+
+        <div class="donation">
+            <a href="https://paypal.me/VL1Xi?country.x=MA&locale.x=en_US" target="_blank">Donate</a>
+        </div>
+    </div>
+
+    <script>
+        const recipes = JSON.parse(localStorage.getItem('recipes')) || [];
+
+        function addRecipe() {
+            const name = document.getElementById('recipeName').value.trim();
+            const ingredients = document.getElementById('recipeIngredients').value.trim().split('\n').map(i => i.trim()).filter(i => i);
+            const instructions = document.getElementById('recipeInstructions').value.trim();
+
+            if (name && ingredients.length && instructions) {
+                const recipe = { name, ingredients, instructions };
+                recipes.push(recipe);
+                localStorage.setItem('recipes', JSON.stringify(recipes));
+                displayRecipes();
+                updateGroceryList();
+                clearForm();
+            } else {
+                alert('Please fill in all fields');
+            }
+        }
+
+        function displayRecipes() {
+            const recipeList = document.getElementById('recipeList');
+            recipeList.innerHTML = recipes.map(recipe => `
+                <div class="recipeItem">
+                    <h3>${recipe.name}</h3>
+                    <h4>Ingredients:</h4>
+                    <ul>${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}</ul>
+                    <h4>Instructions:</h4>
+                    <p>${recipe.instructions}</p>
+                </div>
+            `).join('');
+        }
+
+        function updateGroceryList() {
+            const groceryList = document.getElementById('groceryList');
+            const allIngredients = recipes.flatMap(recipe => recipe.ingredients);
+            const ingredientCount = allIngredients.reduce((acc, ingredient) => {
+                acc[ingredient] = (acc[ingredient] || 0) + 1;
+                return acc;
+            }, {});
+
+            groceryList.innerHTML = Object.keys(ingredientCount).map(ingredient => `
+                <div class="groceryItem">
+                    <span>${ingredient}</span>
+                    <span>(x${ingredientCount[ingredient]})</span>
+                </div>
+            `).join('');
+        }
+
+        function clearForm() {
+            document.getElementById('recipeName').value = '';
+            document.getElementById('recipeIngredients').value = '';
+            document.getElementById('recipeInstructions').value = '';
+        }
+
+        // Initial load
+        displayRecipes();
+        updateGroceryList();
+    </script>
+</body>
+</html>
